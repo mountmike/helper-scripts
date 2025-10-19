@@ -6,8 +6,8 @@ apk update
 echo "==> Installing core utilities..."
 apk add --no-cache \
   bash bash-completion \
-  nano curl wget git \
-  openssh-client ca-certificates ca-certificates-bundle
+  nano curl git \
+  openssh-client
 
 echo "==> Enabling bash completion..."
 if [ ! -f /etc/profile.d/bash_completion.sh ]; then
