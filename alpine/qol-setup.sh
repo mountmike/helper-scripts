@@ -5,14 +5,9 @@ apk update
 
 echo "==> Installing core utilities..."
 apk add --no-cache \
-  bash bash-completion \
+  bash \
   nano curl git \
   openssh-client
-
-echo "==> Enabling bash completion..."
-if [ ! -f /etc/profile.d/bash_completion.sh ]; then
-  echo ". /etc/profile.d/bash_completion.sh" >> /etc/profile
-fi
 
 echo "==> Setting bash as default shell for root..."
 sed -i 's|/bin/ash|/bin/bash|' /etc/passwd
