@@ -10,6 +10,7 @@ apt install -y \
   git \
   curl \
   wget \
+  fonts-powerline \
   ca-certificates
 
 echo "==> Installing Oh My Zsh..."
