@@ -17,9 +17,6 @@ fi
 echo "==> Setting bash as default shell for root..."
 sed -i 's|/bin/ash|/bin/bash|' /etc/passwd
 
-echo "==> Updating certificate store..."
-update-ca-certificates
-
 echo "==> Cleaning up..."
 apk cache clean
 
