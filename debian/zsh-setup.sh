@@ -1,11 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "==> Updating repositories..."
-apk update
+apt update -qq && apt upgrade -y
 
-echo "==> Installing Zsh + Git..."
-apk add --no-cache zsh git curl wget ca-certificates
+echo "==> Installing Zsh + Git + essentials..."
+apt install -y \
+  zsh \
+  git \
+  curl \
+  wget \
+  ca-certificates
 
 echo "==> Installing Oh My Zsh..."
 export RUNZSH=no
@@ -36,17 +41,21 @@ EOF
 fi
 
 echo "==> Setting Zsh as default shell for root..."
-if grep -q '/bin/ash' /etc/passwd; then
-  sed -i 's|/bin/ash|/bin/zsh|' /etc/passwd
+if command -v zsh >/dev/null 2>&1; then
+  chsh -s /usr/bin/zsh root || echo "⚠️ Could not change shell automatically. You may need to run: chsh -s /usr/bin/zsh"
 fi
 
 echo "==> Forcing Zsh for root login sessions..."
 cat <<'EOF' > /root/.profile
 # Force Zsh as login shell
-if [ -t 1 ] && [ -x /bin/zsh ]; then
-  export SHELL=/bin/zsh
-  exec /bin/zsh
+if [ -t 1 ] && [ -x /usr/bin/zsh ]; then
+  export SHELL=/usr/bin/zsh
+  exec /usr/bin/zsh
 fi
 EOF
+
+echo "==> Cleaning up..."
+apt autoremove -y
+apt clean
 
 echo "==> Done! 🎉 Run 'exec zsh' to start using Oh My Zsh."
