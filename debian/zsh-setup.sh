@@ -1,61 +1,46 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 echo "==> Updating repositories..."
 apt update -qq && apt upgrade -y
 
-echo "==> Installing Zsh + Git + essentials..."
+echo "==> Installing Zsh + essentials + Powerline fonts..."
 apt install -y \
   zsh \
   git \
   curl \
   wget \
-  ca-certificates
+  ca-certificates \
+  fonts-powerline
 
 echo "==> Installing Oh My Zsh..."
-export RUNZSH=no
-export CHSH=no
-export KEEP_ZSHRC=yes
+export RUNZSH=no CHSH=no KEEP_ZSHRC=yes
 export ZSH="${HOME}/.oh-my-zsh"
-
 sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
-echo "==> Configuring basic .zshrc..."
+# --- Pull shared profile from GitHub ---
+PROFILE_URL="https://raw.githubusercontent.com/mountmike/helper-scripts/main/general/oh-my-profile.zsh"
+PROFILE_DEST="$HOME/.config/zsh"
+mkdir -p "$PROFILE_DEST"
+
+echo "==> Downloading shared profile from GitHub..."
+wget -qO "$PROFILE_DEST/oh-my-profile.zsh" "$PROFILE_URL"
+
+# --- Write .zshrc to source the profile ---
 ZSHRC="$HOME/.zshrc"
-
-# Copy default template if not present
-if [ ! -f "$ZSHRC" ]; then
-  cp "${ZSH}/templates/zshrc.zsh-template" "$ZSHRC"
+cat > "$ZSHRC" <<'EOF'
+# Load shared Oh My Zsh profile
+if [ -f "$HOME/.config/zsh/oh-my-profile.zsh" ]; then
+  source "$HOME/.config/zsh/oh-my-profile.zsh"
+else
+  echo "⚠️  Missing shared profile: $HOME/.config/zsh/oh-my-profile.zsh"
 fi
-
-# Set theme and prompt style
-sed -i 's/^ZSH_THEME=.*/ZSH_THEME="robbyrussell"/' "$ZSHRC"
-
-# Ensure prompt always shows user@host
-if ! grep -q 'PROMPT=' "$ZSHRC"; then
-  cat <<'EOF' >> "$ZSHRC"
-
-# Override prompt to always show user@host
-PROMPT='%F{cyan}%n@%m%f %F{yellow}%~%f %# '
 EOF
-fi
 
-echo "==> Setting Zsh as default shell for root..."
+echo "==> Setting Zsh as default shell..."
 if command -v zsh >/dev/null 2>&1; then
-  chsh -s /usr/bin/zsh root || echo "⚠️ Could not change shell automatically. You may need to run: chsh -s /usr/bin/zsh"
+  chsh -s "$(command -v zsh)" root || echo "⚠️ Could not change shell automatically. Run manually: chsh -s $(command -v zsh)"
 fi
-
-echo "==> Forcing Zsh for root login sessions..."
-cat <<'EOF' > /root/.profile
-# Force Zsh as login shell
-if [ -t 1 ] && [ -x /usr/bin/zsh ]; then
-  export SHELL=/usr/bin/zsh
-  exec /usr/bin/zsh
-fi
-EOF
 
 echo "==> Cleaning up..."
-apt autoremove -y
-apt clean
-
-echo "==> Done! 🎉 Run 'exec zsh' to start using Oh My Zsh."
+apt autoremove -y && apt clean
