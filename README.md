@@ -8,4 +8,4 @@ Various setup scripts for my personal dev environments and home lab.
 #### Quality of Life (QoL) Setup
 
 ```bash
-wget -O - https://raw.githubusercontent.com/<yourusername>/dockyard-bootstrap/main/01-zsh-setup.sh | sh
+wget -O - https://raw.githubusercontent.com/mountmike/helper-scripts/main/alpine/qol-setup.sh | sh

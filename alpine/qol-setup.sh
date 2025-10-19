@@ -7,7 +7,7 @@ echo "==> Installing core utilities..."
 apk add --no-cache \
   bash bash-completion \
   nano curl wget git \
-  openssh-client ca-certificates sudo
+  openssh-client ca-certificates ca-certificates-bundle
 
 echo "==> Enabling bash completion..."
 if [ ! -f /etc/profile.d/bash_completion.sh ]; then
