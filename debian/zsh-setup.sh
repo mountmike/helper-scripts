@@ -1,46 +1,43 @@
 #!/bin/bash
-set -euo pipefail
+set -e
 
 echo "==> Updating repositories..."
 apt update -qq && apt upgrade -y
 
-echo "==> Installing Zsh + essentials + Powerline fonts..."
+echo "==> Installing Zsh + Git + essentials..."
 apt install -y \
   zsh \
   git \
   curl \
   wget \
-  ca-certificates \
-  fonts-powerline
+  ca-certificates
 
 echo "==> Installing Oh My Zsh..."
-export RUNZSH=no CHSH=no KEEP_ZSHRC=yes
+export RUNZSH=no
+export CHSH=no
+export KEEP_ZSHRC=yes
 export ZSH="${HOME}/.oh-my-zsh"
+
 sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
-# --- Pull shared profile from GitHub ---
-PROFILE_URL="https://raw.githubusercontent.com/mountmike/helper-scripts/main/general/oh-my-profile.zsh"
-PROFILE_DEST="$HOME/.config/zsh"
-mkdir -p "$PROFILE_DEST"
-
-echo "==> Downloading shared profile from GitHub..."
-wget -qO "$PROFILE_DEST/oh-my-profile.zsh" "$PROFILE_URL"
-
-# --- Write .zshrc to source the profile ---
+echo "==> Configuring basic .zshrc..."
 ZSHRC="$HOME/.zshrc"
-cat > "$ZSHRC" <<'EOF'
-# Load shared Oh My Zsh profile
-if [ -f "$HOME/.config/zsh/oh-my-profile.zsh" ]; then
-  source "$HOME/.config/zsh/oh-my-profile.zsh"
-else
-  echo "⚠️  Missing shared profile: $HOME/.config/zsh/oh-my-profile.zsh"
-fi
-EOF
 
-echo "==> Setting Zsh as default shell..."
+# Copy default template if not present
+if [ ! -f "$ZSHRC" ]; then
+  cp "${ZSH}/templates/zshrc.zsh-template" "$ZSHRC"
+fi
+
+# Set theme and prompt style
+sed -i 's/^ZSH_THEME=.*/ZSH_THEME="agnoster"/' "$ZSHRC"
+
+echo "==> Setting Zsh as default shell for root..."
 if command -v zsh >/dev/null 2>&1; then
-  chsh -s "$(command -v zsh)" root || echo "⚠️ Could not change shell automatically. Run manually: chsh -s $(command -v zsh)"
+  chsh -s /usr/bin/zsh root || echo "⚠️ Could not change shell automatically. You may need to run: chsh -s /usr/bin/zsh"
 fi
 
 echo "==> Cleaning up..."
-apt autoremove -y && apt clean
+apt autoremove -y
+apt clean
+
+echo "==> Done! 🎉 Run 'exec zsh' to start using Oh My Zsh."
