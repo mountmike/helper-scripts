@@ -4,7 +4,15 @@ set -e
 echo "==> Updating repositories..."
 apt update -qq && apt upgrade -y
 
-echo "==> Installing Zsh + Git + essentials..."
+echo "==> Configuring UTF-8 locale..."
+apt install -y locales
+sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+locale-gen
+update-locale LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+echo "==> Installing Zsh + essentials..."
 apt install -y \
   zsh \
   git \
@@ -21,24 +29,24 @@ export ZSH="${HOME}/.oh-my-zsh"
 
 sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
-echo "==> Configuring basic .zshrc..."
-ZSHRC="$HOME/.zshrc"
+ZSHRC="${HOME}/.zshrc"
 
-# Copy default template if not present
+# Copy default template if missing
 if [ ! -f "$ZSHRC" ]; then
   cp "${ZSH}/templates/zshrc.zsh-template" "$ZSHRC"
 fi
 
-# Set theme and prompt style
+# Set theme to agnoster
 sed -i 's/^ZSH_THEME=.*/ZSH_THEME="agnoster"/' "$ZSHRC"
 
-echo "==> Setting Zsh as default shell for root..."
+echo "==> Setting Zsh as default shell..."
 if command -v zsh >/dev/null 2>&1; then
-  chsh -s /usr/bin/zsh root || echo "⚠️ Could not change shell automatically. You may need to run: chsh -s /usr/bin/zsh"
+  chsh -s "$(command -v zsh)" root || echo "⚠️ Could not set default shell automatically."
 fi
 
 echo "==> Cleaning up..."
 apt autoremove -y
 apt clean
 
-echo "==> Done! 🎉 Run 'exec zsh' to start using Oh My Zsh."
+echo "==> Done! 🎉"
+echo "Run 'exec zsh' to start using Oh My Zsh."
