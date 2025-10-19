@@ -4,24 +4,8 @@ set -e
 echo "==> Updating repositories..."
 apk update
 
-echo "==> Installing Zsh + essentials..."
-apk add --no-cache \
-  zsh \
-  git \
-  curl \
-  wget \
-  ca-certificates \
-  font-powerline \
-  bash \
-  ncurses-terminfo-base \
-  tzdata
-
-echo "==> Configuring UTF-8 locale..."
-# Alpine doesn’t ship full locale-gen by default, but we can ensure UTF-8 defaults
-echo "export LANG=en_US.UTF-8" >> /etc/profile
-echo "export LC_ALL=en_US.UTF-8" >> /etc/profile
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
+echo "==> Installing Zsh + Git..."
+apk add --no-cache zsh git curl wget ca-certificates
 
 echo "==> Installing Oh My Zsh..."
 export RUNZSH=no
@@ -31,6 +15,7 @@ export ZSH="${HOME}/.oh-my-zsh"
 
 sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
+echo "==> Configuring basic .zshrc..."
 ZSHRC="$HOME/.zshrc"
 
 # Copy default template if not present
@@ -38,8 +23,17 @@ if [ ! -f "$ZSHRC" ]; then
   cp "${ZSH}/templates/zshrc.zsh-template" "$ZSHRC"
 fi
 
-# Set theme to agnoster
-sed -i 's/^ZSH_THEME=.*/ZSH_THEME="agnoster"/' "$ZSHRC"
+# Set theme and prompt style
+sed -i 's/^ZSH_THEME=.*/ZSH_THEME="robbyrussell"/' "$ZSHRC"
+
+# Ensure prompt always shows user@host
+if ! grep -q 'PROMPT=' "$ZSHRC"; then
+  cat <<'EOF' >> "$ZSHRC"
+
+# Override prompt to always show user@host
+PROMPT='%F{cyan}%n@%m%f %F{yellow}%~%f %# '
+EOF
+fi
 
 echo "==> Setting Zsh as default shell for root..."
 if grep -q '/bin/ash' /etc/passwd; then
@@ -55,8 +49,4 @@ if [ -t 1 ] && [ -x /bin/zsh ]; then
 fi
 EOF
 
-echo "==> Cleaning up..."
-rm -rf /var/cache/apk/*
-
-echo "==> Done! 🎉"
-echo "Run 'exec zsh' to start using Oh My Zsh."
+echo "==> Done! 🎉 Run 'exec zsh' to start using Oh My Zsh."
