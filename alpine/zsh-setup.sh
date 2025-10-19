@@ -35,9 +35,20 @@ PROMPT='%F{cyan}%n@%m%f %F{yellow}%~%f %# '
 EOF
 fi
 
-echo "==> Setting Zsh as default shell for root..."
-if grep -q '/bin/ash' /etc/passwd; then
-  sed -i 's|/bin/ash|/bin/zsh|' /etc/passwd
+echo "==> Setting Zsh as the default login shell for root..."
+
+# Fix /etc/passwd entry
+if grep -q '^root:.*:/bin/sh' /etc/passwd; then
+  sed -i 's|^root:\(.*\):/bin/sh$|root:\1:/bin/zsh|' /etc/passwd
+elif grep -q '^root:.*:/bin/ash' /etc/passwd; then
+  sed -i 's|^root:\(.*\):/bin/ash$|root:\1:/bin/zsh|' /etc/passwd
 fi
 
-echo "==> Done! 🎉 Run 'exec zsh' to start using Oh My Zsh."
+# Ensure fallback via ~/.profile (for console logins)
+PROFILE="/root/.profile"
+if ! grep -q 'exec /bin/zsh' "$PROFILE" 2>/dev/null; then
+  echo "exec /bin/zsh" >> "$PROFILE"
+fi
+
+echo "==> Default shell now set to $(grep root /etc/passwd | awk -F: '{print $7}')"
+echo "==> Run 'exec zsh' to start using Oh My Zsh immediately."
